@@ -9,6 +9,12 @@ import fs from "fs";
     return
   }
 
+  if (!fs.existsSync('results')) {
+    // If it doesn't exist, create it
+    fs.mkdirSync('results');
+    console.log("Created results directory");
+  }
+
   const files = fs.readdirSync('results');
 
   for (const file of files) {
