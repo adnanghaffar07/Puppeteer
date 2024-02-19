@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 import lighthouse from "lighthouse";
 import { URL } from "url"; // Import URL class separately
+import fs from "fs";
 
 export async function createBrowser() {
   const browser = await puppeteer.launch({
@@ -19,4 +20,13 @@ export async function createReportWithBrowser(browser, url, options = { output: 
       port: endpointURL.port
     }, options) // Allow options to override anything here
   );
+}
+
+export async function generatePDF(html, pdfPath) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  const htmlContent = fs.readFileSync(html, 'utf8');
+  await page.setContent(htmlContent);
+  await page.pdf({ path: pdfPath, format: 'A4' });
+  await browser.close();
 }

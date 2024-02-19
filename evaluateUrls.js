@@ -1,47 +1,82 @@
-import { createBrowser, createReportWithBrowser } from "./lighthouse-util.js";
-import 'dotenv/config.js'
+import { createBrowser, createReportWithBrowser, generatePDF } from "./lighthouse-util.js";
+import "dotenv/config.js";
 import fs from "fs";
+import { DOMParser } from "xmldom";
+import fetch from "node-fetch";
 
 (async () => {
-  const urlsString =  process.env.URLS_TO_EVALUATE
-
-  if(!urlsString){
-    return
-  }
-
-  if (!fs.existsSync('results')) {
-    // If it doesn't exist, create it
-    fs.mkdirSync('results');
-    console.log("Created results directory");
-  }
-
-  const files = fs.readdirSync('results');
-
-  for (const file of files) {
-    if (file.endsWith('.html')) {
-      fs.unlinkSync(`results/${file}`);
-      console.log(`Removed previous report: ${file}`);
-    }
-  }
-  console.log(`Removed previous reports`);
-
-  const urls = urlsString.split(',');
+  const siteMap = process.env.SITE_MAP_AVAILABLE;
+  let urlsString;
+  let urls = [];
 
   const browser = await createBrowser();
 
+  if (siteMap === "true" || siteMap === "True" || siteMap === "TRUE") {
+  const siteMapURl = process.env.SITE_MAP_URL
+  if(!siteMapURl){
+    throw new Error('SITE_MAP_URL is required')
+  }
+  const xmlResponse = await fetch(siteMapURl);
+  const xmlContent = await xmlResponse.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlContent, 'text/xml');
+
+  // Get all 'loc' elements using XPath
+  const locElements = doc.getElementsByTagName('loc');
+  urls = Array.from(locElements).map(locElement => locElement.textContent.trim());
+
+  } else {
+    urlsString = process.env.URLS_TO_EVALUATE;
+    if (!urlsString) {
+      throw new Error("URLS_TO_EVALUATE is need when sitemap is false");
+    }
+    urls = urlsString.split(",");
+  }
+  if (!fs.existsSync("results")) {
+    fs.mkdirSync("results");
+  }
+  if (!fs.existsSync("results/htmlreports")) {
+    fs.mkdirSync("results/htmlreports");
+  }
+  if (!fs.existsSync("results/pdfReports")) {
+    fs.mkdirSync("results/pdfReports");
+  }
+
+  const htmlFiles = fs.readdirSync("results/htmlReports");
+  const pdfFiles = fs.readdirSync("results/pdfReports");
+  
+  for (const htmlFile of htmlFiles) {
+    if (htmlFile.endsWith(".html")) {
+      fs.unlinkSync(`results/htmlreports/${htmlFile}`);
+      console.log(`Removed previous HTML report: ${htmlFile}`);
+    }
+  }
+  
+  for (const pdfFile of pdfFiles) {
+    if (pdfFile.endsWith(".pdf")) {
+      fs.unlinkSync(`results/pdfreports/${pdfFile}`);
+      console.log(`Removed previous PDF report: ${pdfFile}`);
+    }
+  }
+
   for (const url of urls) {
-    console.log("Evaluating: ", url)
+    console.log("Evaluating: ", url);
     const result = await createReportWithBrowser(browser, url, {
-      output: "html"
+      output: "html",
     });
     if (result.report) {
       console.log("Report generated successfully!");
       const filename = url.replace(/[^a-zA-Z0-9]/g, "_") + ".html";
-      fs.writeFileSync(`results/${filename}`, result.report, "utf-8");
-      console.log('Results saved to results folder')
+      fs.writeFileSync(`results/htmlReports/${filename}`, result.report, "utf-8");
+      const pdfPath = url.replace(/[^a-zA-Z0-9]/g, "_") + ".pdf";
+      await generatePDF(`results/htmlReports/${filename}`, `results/pdfReports/${pdfPath}`);
+      console.log("Results saved to results folder");
     } else {
-      console.error(`No report generated for URL: ${url}`);
+      throw new Error(`No report generated for URL: ${url}`);
     }
   }
   await browser.close();
-})().catch(console.error);
+})().catch((error)=> {
+  console.error(error);
+  process.exit(1);
+});
