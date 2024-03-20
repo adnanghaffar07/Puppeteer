@@ -1,8 +1,10 @@
 import {
+  addCommentToJira,
   createBrowser,
   createReportWithBrowser,
   generatePDF,
-  zipDirectory,
+  uploadFile,
+  zipDirectory
 } from "./lighthouse-util.js";
 import "dotenv/config.js";
 import fs from "fs";
@@ -89,8 +91,9 @@ import fetch from "node-fetch";
     }
   }
   await browser.close();
-
   await zipDirectory('results','results.zip')
+ const reportLink =  await uploadFile();
+ await addCommentToJira(reportLink);
 })().catch((error) => {
   console.error(error);
   process.exit(1);
