@@ -132,7 +132,7 @@ export async function addCommentToJira (link){
             {
                 content: [
                     {
-                      text: `Report generated successfully\n`,
+                      text: `Report generated successfully for ${process.env.URLS_TO_EVALUATE}\n`,
                       type: "text"
                     },
                     {
@@ -166,7 +166,7 @@ export async function addCommentToJira (link){
           };
           
           await axios.post(url, data, config).then(response => {
-            console.log('Response:', response.data);
+            console.log("Comment Added to jira successfully");
           })
           .catch(error => {
             console.error('Error:', error.response ? error.response.data : error.message);
