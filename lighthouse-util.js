@@ -121,7 +121,7 @@ export async function uploadFile() {
 
 
 
-export async function addCommentToJira (link){
+export async function addCommentToJira (link, reportResults){
 
   const apiTokenJira = process.env.JIRA_API_TOKEN
   const usernameJira = process.env.JIRA_USERNAME
@@ -133,6 +133,26 @@ export async function addCommentToJira (link){
                 content: [
                     {
                       text: `Report generated successfully for ${process.env.URLS_TO_EVALUATE}\n`,
+                      type: "text"
+                    },
+                    {
+                      text: `Performance: ${reportResults.performance.score * 100}%\n`,
+                      type: "text"
+                    },
+                    {
+                      text: `Accessibility ${reportResults.accessibility.score * 100}%\n`,
+                      type: "text"
+                    },
+                    {
+                      text: `Best Practices ${reportResults['best-practices'].score * 100}%\n`,
+                      type: "text"
+                    },
+                    {
+                      text: `SEO ${reportResults.seo.score * 100}%\n`,
+                      type: "text"
+                    },
+                    {
+                      text: `PWA ${reportResults.pwa.score * 100}%\n`,
                       type: "text"
                     },
                     {

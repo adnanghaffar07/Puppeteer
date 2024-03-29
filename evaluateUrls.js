@@ -15,6 +15,7 @@ import fetch from "node-fetch";
   const siteMap = process.env.SITE_MAP_AVAILABLE;
   let urlsString;
   let urls = [];
+  let reportResults;
 
   const browser = await createBrowser();
 
@@ -73,6 +74,7 @@ import fetch from "node-fetch";
       output: "html",
     });
     if (result.report) {
+      reportResults = result.lhr;
       console.log("Report generated successfully!");
       const filename = url.replace(/[^a-zA-Z0-9]/g, "_") + ".html";
       fs.writeFileSync(
@@ -91,9 +93,11 @@ import fetch from "node-fetch";
     }
   }
   await browser.close();
-  await zipDirectory('results','results.zip')
- const reportLink =  await uploadFile();
- await addCommentToJira(reportLink);
+  if(reportResults){
+    await zipDirectory('results','results.zip')
+    const reportLink =  await uploadFile();
+    await addCommentToJira(reportLink, reportResults.categories);
+  }
 })().catch((error) => {
   console.error(error);
   process.exit(1);
