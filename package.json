@@ -17,6 +17,7 @@
     "googleapis": "^134.0.0",
     "lighthouse": "^11.5.0",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.9.13",
     "puppeteer": "^22.1.0",
     "xmldom": "^0.6.0"
   },

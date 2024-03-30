@@ -3,6 +3,7 @@ import {
   createBrowser,
   createReportWithBrowser,
   generatePDF,
+  sendEmail,
   uploadFile,
   zipDirectory
 } from "./lighthouse-util.js";
@@ -97,6 +98,7 @@ import fetch from "node-fetch";
     await zipDirectory('results','results.zip')
     const reportLink =  await uploadFile();
     await addCommentToJira(reportLink, reportResults.categories);
+    await sendEmail(reportLink, reportResults.categories)
   }
 })().catch((error) => {
   console.error(error);
