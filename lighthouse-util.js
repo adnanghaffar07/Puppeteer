@@ -119,65 +119,105 @@ export async function uploadFile() {
   }
 }
 
-export async function addCommentToJira(link, reportResults) {
+export async function addCommentToJira(link, reportResults, siteMap = false) {
   const apiTokenJira = process.env.JIRA_API_TOKEN;
   const usernameJira = process.env.JIRA_USERNAME;
   const url = `https://codeautomation.atlassian.net/rest/api/3/issue/${process.env.ISSUE_KEY}/comment`;
-  const data = {
-    body: {
-      content: [
-        {
+
+  /**Condional based Data for adding comment to jira is created here based on siteMap varibale */
+  const data = !siteMap
+    ? {
+        body: {
           content: [
             {
-              text: `Report generated successfully for ${process.env.URLS_TO_EVALUATE}\n`,
-              type: "text",
-            },
-            {
-              text: `Performance: ${reportResults.performance.score * 100}%\n`,
-              type: "text",
-            },
-            {
-              text: `Accessibility ${
-                reportResults.accessibility.score * 100
-              }%\n`,
-              type: "text",
-            },
-            {
-              text: `Best Practices ${
-                reportResults["best-practices"].score * 100
-              }%\n`,
-              type: "text",
-            },
-            {
-              text: `SEO ${reportResults.seo.score * 100}%\n`,
-              type: "text",
-            },
-            {
-              text: `PWA ${reportResults.pwa.score * 100}%\n`,
-              type: "text",
-            },
-            {
-              text: `Report Link`,
-              type: "text",
-              marks: [
+              content: [
                 {
-                  type: "link",
-                  attrs: {
-                    href: link,
-                    title: "Report",
-                  },
+                  text: `Report generated successfully for ${process.env.URLS_TO_EVALUATE}\n`,
+                  type: "text",
+                },
+                {
+                  text: `Performance: ${
+                    reportResults.performance.score * 100
+                  }%\n`,
+                  type: "text",
+                },
+                {
+                  text: `Accessibility ${
+                    reportResults.accessibility.score * 100
+                  }%\n`,
+                  type: "text",
+                },
+                {
+                  text: `Best Practices ${
+                    reportResults["best-practices"].score * 100
+                  }%\n`,
+                  type: "text",
+                },
+                {
+                  text: `SEO ${reportResults.seo.score * 100}%\n`,
+                  type: "text",
+                },
+                {
+                  text: `PWA ${reportResults.pwa.score * 100}%\n`,
+                  type: "text",
+                },
+                {
+                  text: `Report Link`,
+                  type: "text",
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: {
+                        href: link,
+                        title: "Report",
+                      },
+                    },
+                  ],
                 },
               ],
+              type: "paragraph",
             },
           ],
-          type: "paragraph",
+          type: "doc",
+          version: 1,
         },
-      ],
-      type: "doc",
-      version: 1,
-    },
-  };
+      }
+    : {
+        body: {
+          content: [
+            {
+              content: [
+                {
+                  text: `Site Map Report Generated successfully. SiteMap URL (${process.env.SITE_MAP_URL})\n`,
+                  type: "text",
+                },
+                {
+                  text: `detailed Stats are available in Report attached below\n`,
+                  type: "text",
+                },
+                {
+                  text: `Report Link`,
+                  type: "text",
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: {
+                        href: link,
+                        title: "Report",
+                      },
+                    },
+                  ],
+                },
+              ],
+              type: "paragraph",
+            },
+          ],
+          type: "doc",
+          version: 1,
+        },
+      };
 
+      /**Jira Rest API is configured below */
   const config = {
     headers: {
       Accept: "application/json",
@@ -185,6 +225,8 @@ export async function addCommentToJira(link, reportResults) {
       Authorization: `Basic ${btoa(`${usernameJira}:${apiTokenJira}`)}`,
     },
   };
+
+  /**Axios request to post jira Comments */
 
   await axios
     .post(url, data, config)
@@ -199,7 +241,9 @@ export async function addCommentToJira(link, reportResults) {
     });
 }
 
-export const sendEmail = async (reportLink, reportResults) => {
+export const sendEmail = async (reportLink, reportResults, siteMap = false) => {
+
+  /** Unique Date and Time Variables Created Here */
   const date = new Date();
   const currentDate =
     date.getUTCMonth() +
@@ -211,8 +255,9 @@ export const sendEmail = async (reportLink, reportResults) => {
   const userEmail = process.env.GMAIL_EMAIL;
   const userPassword = process.env.GMAIL_PASSWORD;
 
-  const currentTime = date.getUTCHours() + ':' + date.getUTCMinutes()
+  const currentTime = date.getUTCHours() + ":" + date.getUTCMinutes();
 
+  /**Transporter is created Below */
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -224,30 +269,47 @@ export const sendEmail = async (reportLink, reportResults) => {
     },
   });
 
+  /** Condional Bases HTML Body for Sitemap and Simple URL */
+
+  const htmlBody = !siteMap
+    ? `<h2><strong>Google Lighthouse Summary for ${
+        process.env.URLS_TO_EVALUATE
+      }</strong></h2>
+  
+  <h4><strong>Performance: ${
+    reportResults.performance.score * 100
+  }%</strong></h4>   
+  <h4><strong>Accessibility: ${
+    reportResults.accessibility.score * 100
+  }%</strong></h4>   
+  <h4><strong>Best Practices: ${
+    reportResults["best-practices"].score * 100
+  }%</strong></h4>   
+  <h4><strong>SEO: ${reportResults.seo.score * 100}%</strong></h4>   
+  <h4><strong>PWA: ${reportResults.pwa.score * 100}%</strong></h4>
+  <h3>\nReport Link is Attached Below</h3>   
+      <a href="${reportLink}">
+      <strong>Report Link</strong>
+      </a>`
+    : `<h2><strong>Google Lighthouse Summary for SiteMap ${process.env.SITE_MAP_URL}</strong></h2>
+      <h3>\nReport Link is Attached Below</h3>   
+          <a href="${reportLink}">
+          <strong>Report Link</strong>
+          </a>`;
+
+
+
+          /**Mail Formated Below  */
+
   const mailOptions = {
     from: userEmail,
     to: mailList,
     subject: `Light House Report of (${currentDate}-${currentTime} UTC)`,
-    html: `<h2><strong>Google Lighthouse Summary for ${
-      process.env.URLS_TO_EVALUATE
-    }</strong></h2>
-    
-    <h4><strong>Performance: ${
-      reportResults.performance.score * 100
-    }%</strong></h4>   
-    <h4><strong>Accessibility: ${
-      reportResults.accessibility.score * 100
-    }%</strong></h4>   
-    <h4><strong>Best Practices: ${
-      reportResults['best-practices'].score * 100
-    }%</strong></h4>   
-    <h4><strong>SEO: ${reportResults.seo.score * 100}%</strong></h4>   
-    <h4><strong>PWA: ${reportResults.pwa.score * 100}%</strong></h4>
-    <h3>\nReport Link is Attached Below</h3>   
-        <a href="${reportLink}">
-        <strong>Report Link</strong>
-        </a>`,
+    html: htmlBody,
   };
+
+
+  /**Mail is Sended Here after formation */
 
   await transporter.sendMail({ ...mailOptions });
 };
