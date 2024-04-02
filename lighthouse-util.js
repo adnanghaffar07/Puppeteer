@@ -119,13 +119,13 @@ export async function uploadFile() {
   }
 }
 
-export async function addCommentToJira(link, reportResults, siteMap = false) {
+export async function addCommentToJira(link, reportResults, siteMap) {
   const apiTokenJira = process.env.JIRA_API_TOKEN;
   const usernameJira = process.env.JIRA_USERNAME;
   const url = `https://codeautomation.atlassian.net/rest/api/3/issue/${process.env.ISSUE_KEY}/comment`;
 
   /**Condional based Data for adding comment to jira is created here based on siteMap varibale */
-  const data = !siteMap
+  const data = siteMap === 'false'
     ? {
         body: {
           content: [
@@ -241,7 +241,7 @@ export async function addCommentToJira(link, reportResults, siteMap = false) {
     });
 }
 
-export const sendEmail = async (reportLink, reportResults, siteMap = false) => {
+export const sendEmail = async (reportLink, reportResults, siteMap) => {
 
   /** Unique Date and Time Variables Created Here */
   const date = new Date();
@@ -271,7 +271,7 @@ export const sendEmail = async (reportLink, reportResults, siteMap = false) => {
 
   /** Condional Bases HTML Body for Sitemap and Simple URL */
 
-  const htmlBody = !siteMap
+  const htmlBody = siteMap === 'false'
     ? `<h2><strong>Google Lighthouse Summary for ${
         process.env.URLS_TO_EVALUATE
       }</strong></h2>
