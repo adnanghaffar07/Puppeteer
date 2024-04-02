@@ -192,7 +192,7 @@ export async function addCommentToJira(link, reportResults, siteMap) {
                   type: "text",
                 },
                 {
-                  text: `detailed Stats are available in Report attached below\n`,
+                  text: `Detailed Stats are available in Report attached below\n`,
                   type: "text",
                 },
                 {
@@ -292,7 +292,7 @@ export const sendEmail = async (reportLink, reportResults, siteMap) => {
       <strong>Report Link</strong>
       </a>`
     : `<h2><strong>Google Lighthouse Summary for SiteMap ${process.env.SITE_MAP_URL}</strong></h2>
-      <h3>\nReport Link is Attached Below</h3>   
+      <h3>\nDetailed Stats are available in Report attached below</h3>   
           <a href="${reportLink}">
           <strong>Report Link</strong>
           </a>`;

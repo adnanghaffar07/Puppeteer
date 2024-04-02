@@ -1,6 +1,4 @@
 export const mailList = [
+    "adnan@codeautomation.dev",
     "nouman@codeautomation.dev"
 ]
-
-
-//adnan@codeautomation.dev",
