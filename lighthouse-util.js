@@ -124,6 +124,9 @@ export async function addCommentToJira(link, reportResults, siteMap) {
   const usernameJira = process.env.JIRA_USERNAME;
   const url = `https://codeautomation.atlassian.net/rest/api/3/issue/${process.env.ISSUE_KEY}/comment`;
 
+  const urlsString = process.env.URLS_TO_EVALUATE;
+  let urls = urlsString.split(",");
+
   /**Condional based Data for adding comment to jira is created here based on siteMap varibale */
   const data =
     siteMap === "false"
@@ -131,7 +134,38 @@ export async function addCommentToJira(link, reportResults, siteMap) {
           body: {
             content: [
               {
-                content: [
+
+                content: urls.length > 1 
+                ? 
+                [
+                  {
+                    text: `Report generated successfully for following URLs\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `${urls?.map((url) => `${url}\n`).join('')}`,
+                    type: "text",
+                  },
+                  {
+                    text: `Detailed Stats are available in Report attached below\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `Report Link`,
+                    type: "text",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: {
+                          href: link,
+                          title: "Report",
+                        },
+                      },
+                    ],
+                  },
+                ]
+                :
+                [
                   {
                     text: `Report generated successfully for ${process.env.URLS_TO_EVALUATE}\n`,
                     type: "text",
@@ -273,7 +307,6 @@ export const sendEmail = async (reportLink, reportResults, siteMap) => {
 
   const urlsString = process.env.URLS_TO_EVALUATE;
   let urls = urlsString.split(",");
-  console.log("Length", urls.length);
   const htmlBody =
     siteMap === "false"
       ? `<h2><strong>Google Lighthouse Summary</strong></h2>
