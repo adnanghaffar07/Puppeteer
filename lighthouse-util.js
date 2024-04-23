@@ -125,99 +125,100 @@ export async function addCommentToJira(link, reportResults, siteMap) {
   const url = `https://codeautomation.atlassian.net/rest/api/3/issue/${process.env.ISSUE_KEY}/comment`;
 
   /**Condional based Data for adding comment to jira is created here based on siteMap varibale */
-  const data = siteMap === 'false'
-    ? {
-        body: {
-          content: [
-            {
-              content: [
-                {
-                  text: `Report generated successfully for ${process.env.URLS_TO_EVALUATE}\n`,
-                  type: "text",
-                },
-                {
-                  text: `Performance: ${
-                    reportResults.performance.score * 100
-                  }%\n`,
-                  type: "text",
-                },
-                {
-                  text: `Accessibility ${
-                    reportResults.accessibility.score * 100
-                  }%\n`,
-                  type: "text",
-                },
-                {
-                  text: `Best Practices ${
-                    reportResults["best-practices"].score * 100
-                  }%\n`,
-                  type: "text",
-                },
-                {
-                  text: `SEO ${reportResults.seo.score * 100}%\n`,
-                  type: "text",
-                },
-                {
-                  text: `PWA ${reportResults.pwa.score * 100}%\n`,
-                  type: "text",
-                },
-                {
-                  text: `Report Link`,
-                  type: "text",
-                  marks: [
-                    {
-                      type: "link",
-                      attrs: {
-                        href: link,
-                        title: "Report",
+  const data =
+    siteMap === "false"
+      ? {
+          body: {
+            content: [
+              {
+                content: [
+                  {
+                    text: `Report generated successfully for ${process.env.URLS_TO_EVALUATE}\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `Performance: ${
+                      reportResults.performance.score * 100
+                    }%\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `Accessibility ${
+                      reportResults.accessibility.score * 100
+                    }%\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `Best Practices ${
+                      reportResults["best-practices"].score * 100
+                    }%\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `SEO ${reportResults.seo.score * 100}%\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `PWA ${reportResults.pwa.score * 100}%\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `Report Link`,
+                    type: "text",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: {
+                          href: link,
+                          title: "Report",
+                        },
                       },
-                    },
-                  ],
-                },
-              ],
-              type: "paragraph",
-            },
-          ],
-          type: "doc",
-          version: 1,
-        },
-      }
-    : {
-        body: {
-          content: [
-            {
-              content: [
-                {
-                  text: `Site Map Report Generated successfully. SiteMap URL (${process.env.SITE_MAP_URL})\n`,
-                  type: "text",
-                },
-                {
-                  text: `Detailed Stats are available in Report attached below\n`,
-                  type: "text",
-                },
-                {
-                  text: `Report Link`,
-                  type: "text",
-                  marks: [
-                    {
-                      type: "link",
-                      attrs: {
-                        href: link,
-                        title: "Report",
+                    ],
+                  },
+                ],
+                type: "paragraph",
+              },
+            ],
+            type: "doc",
+            version: 1,
+          },
+        }
+      : {
+          body: {
+            content: [
+              {
+                content: [
+                  {
+                    text: `Site Map Report Generated successfully. SiteMap URL (${process.env.SITE_MAP_URL})\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `Detailed Stats are available in Report attached below\n`,
+                    type: "text",
+                  },
+                  {
+                    text: `Report Link`,
+                    type: "text",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: {
+                          href: link,
+                          title: "Report",
+                        },
                       },
-                    },
-                  ],
-                },
-              ],
-              type: "paragraph",
-            },
-          ],
-          type: "doc",
-          version: 1,
-        },
-      };
+                    ],
+                  },
+                ],
+                type: "paragraph",
+              },
+            ],
+            type: "doc",
+            version: 1,
+          },
+        };
 
-      /**Jira Rest API is configured below */
+  /**Jira Rest API is configured below */
   const config = {
     headers: {
       Accept: "application/json",
@@ -242,7 +243,6 @@ export async function addCommentToJira(link, reportResults, siteMap) {
 }
 
 export const sendEmail = async (reportLink, reportResults, siteMap) => {
-
   /** Unique Date and Time Variables Created Here */
   const date = new Date();
   const currentDate =
@@ -271,14 +271,28 @@ export const sendEmail = async (reportLink, reportResults, siteMap) => {
 
   /** Condional Bases HTML Body for Sitemap and Simple URL */
 
-  const htmlBody = siteMap === 'false'
-    ? `<h2><strong>Google Lighthouse Summary for ${
-        process.env.URLS_TO_EVALUATE
-      }</strong></h2>
-  
-  <h4><strong>Performance: ${
-    reportResults.performance.score * 100
-  }%</strong></h4>   
+  const urlsString = process.env.URLS_TO_EVALUATE;
+  let urls = urlsString.split(",");
+  console.log("Length", urls.length);
+  const htmlBody =
+    siteMap === "false"
+      ? `<h2><strong>Google Lighthouse Summary</strong></h2>
+      <h3>
+        <ul>
+          ${
+              urls?.map((url) => `<li>${url}</li>\n`).join('')
+          }
+        </ul>
+      </h3>
+  ${
+    urls.length > 1
+      ? `<h3>\nDetailed Stats are available in Report attached below</h3>   
+  <a href="${reportLink}">
+  <strong>Report Link</strong>
+  </a>`
+      : `<h4><strong>Performance: ${
+          reportResults.performance.score * 100
+        }%</strong></h4>   
   <h4><strong>Accessibility: ${
     reportResults.accessibility.score * 100
   }%</strong></h4>   
@@ -291,15 +305,14 @@ export const sendEmail = async (reportLink, reportResults, siteMap) => {
       <a href="${reportLink}">
       <strong>Report Link</strong>
       </a>`
-    : `<h2><strong>Google Lighthouse Summary for SiteMap ${process.env.SITE_MAP_URL}</strong></h2>
+  }`
+      : `<h2><strong>Google Lighthouse Summary for SiteMap ${process.env.SITE_MAP_URL}</strong></h2>
       <h3>\nDetailed Stats are available in Report attached below</h3>   
           <a href="${reportLink}">
           <strong>Report Link</strong>
           </a>`;
 
-
-
-          /**Mail Formated Below  */
+  /**Mail Formated Below  */
 
   const mailOptions = {
     from: userEmail,
@@ -308,8 +321,52 @@ export const sendEmail = async (reportLink, reportResults, siteMap) => {
     html: htmlBody,
   };
 
-
   /**Mail is Sended Here after formation */
 
   await transporter.sendMail({ ...mailOptions });
 };
+
+export async function addErrorCommentToJira(error) {
+  const apiTokenJira = process.env.JIRA_API_TOKEN;
+  const usernameJira = process.env.JIRA_USERNAME;
+  const url = `https://codeautomation.atlassian.net/rest/api/3/issue/${process.env.ISSUE_KEY}/comment`;
+  const data = {
+          body: {
+            content: [
+              {
+                content: [
+                  {
+                    text: `Something went wrong while generating the report\nPossible Exeception: ${error}`,
+                    type: "text",
+                  }
+                ],
+                type: "paragraph",
+              },
+            ],
+            type: "doc",
+            version: 1,
+          },
+        }
+  /**Jira Rest API is configured below */
+  const config = {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Basic ${btoa(`${usernameJira}:${apiTokenJira}`)}`,
+    },
+  };
+
+  /**Axios request to post jira Comments */
+
+  await axios
+    .post(url, data, config)
+    .then((response) => {
+      console.log("Comment Added to jira successfully", response.status);
+    })
+    .catch((error) => {
+      console.error(
+        "Error:",
+        error.response ? error.response.data : error.message
+      );
+    });
+}

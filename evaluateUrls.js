@@ -1,5 +1,6 @@
 import {
   addCommentToJira,
+  addErrorCommentToJira,
   createBrowser,
   createReportWithBrowser,
   generatePDF,
@@ -97,10 +98,11 @@ import fetch from "node-fetch";
   if(reportResults){
     await zipDirectory('results','results.zip')
     const reportLink =  await uploadFile();
-    await addCommentToJira(reportLink, reportResults.categories, siteMap);
-    await sendEmail(reportLink, reportResults.categories, siteMap)
+    await addCommentToJira(reportLink, reportResults?.categories, siteMap);
+    await sendEmail(reportLink, reportResults?.categories, siteMap)
   }
-})().catch((error) => {
+})().catch(async(error) => {
+  await addErrorCommentToJira(error);
   console.error(error);
   process.exit(1);
 });
